@@ -14,11 +14,11 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule {
     // Other code to run when object is instantiated
   }
 
+
   public function redcap_save_record($project_id, $record = NULL, $instrument, $event_id, $group_id = NULL, $survey_hash, $response_id, $repeat_instance = 1 )
   {
     // Is a config defined for this instrument?
     // Take the current insturment and get all the fields.  Then check if the 'input field' is present in the instrument fields and is not empty.  If so, then add a log entry...
-
 
     $instances = $this->getSubSettings('instance');
 
@@ -28,14 +28,13 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule {
       $i_event_id   = $instance['event-id'];
       $i_date_field = $instance['date-field'];
       $i_note_field = $instance['note-field'];
-
+      $instrument_fields = "";
 
       // Only process this config if the form is in the same event id
       if ($instance["event-id"] == $event_id) {
 
         // Check if input_field is in $instrument
-        $instrument_fields = REDCap::getFieldNames($instrument);
-        $this->emDebug($instrument_fields);
+        if (empty($instrument_fields)) $instrument_fields = REDCap::getFieldNames($instrument);
 
         if (in_array($instance["input-field"], $instrument_fields)) {
           $this->emDebug($instance["input-field"] . " is on this form! ");
@@ -50,6 +49,7 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule {
           $data_json = REDCap::getData('json', $record, array($fields), $event_id);
 
           $data = json_decode($data_json, true);
+          $data = $data[0];
 
           $this->emDebug($data, "Record $record Data");
 
