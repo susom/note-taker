@@ -28,6 +28,8 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule {
       $i_event_id   = $instance['event-id'];
       $i_date_field = $instance['date-field'];
       $i_note_field = $instance['note-field'];
+      $i_input_field = $instance['input-field'];
+
       $instrument_fields = "";
 
       // Only process this config if the form is in the same event id
@@ -37,13 +39,13 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule {
         if (empty($instrument_fields)) $instrument_fields = REDCap::getFieldNames($instrument);
 
         if (in_array($instance["input-field"], $instrument_fields)) {
-          $this->emDebug($instance["input-field"] . " is on this form! ");
+          $this->emDebug($i_input_field . " is on this form! ");
 
           // Check if the input-field is empty
           $fields = [
-            $instance["input-field"],
-            $instance["date-field"],
-            $instance["note-field"]
+            $i_input_field,
+            $i_date_field,
+            $i_note_field
           ];
 
           $data_json = REDCap::getData('json', $record, array($fields), $event_id);
@@ -53,12 +55,21 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule {
 
           $this->emDebug($data, "Record $record Data");
 
-          if (!empty($data[$instance["input-field"]])) {
+          if (!empty($data[$i_input_field])) {
+
+            $this->emDebug("Data before update", $data);
+
+
             // Update
             $this->emDebug("Update Note");
 
-            $data[$i_note_field] = "new";
 
+            // Prepend input to note
+            // TODO: Only apply delimiter if existing note exists
+            $data[$i_note_field] = "[formatting]" . $data[$i_input_field] . "\n---\n" . $data[$i_note_field];
+
+            // Erase input field
+            $data[$i_input_field] = "";
 
             // Get the format of the date_field
             global $Proj;
@@ -66,12 +77,24 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule {
             $this->emDebug($i_date_field . " is " . $date_format);
             switch ($date_format) {
               case "datetime_ymd":
+                $new_date_format = "Y-m-d H:i:s";
+                break;
+              case "date_ymd":
                 $new_date_format = "Y-m-d";
+                break;
+              default:
+                $this->emDebug($date_format . " is not supported!");
+                return false;
             }
 
             $data[$i_date_field] = Date($new_date_format);
+            $this->emDebug("Data after update", $data);
 
+            // Save
+            $data2_json = json_encode(array($data));
 
+            $result = REDCap::saveData('json', $data2_json, 'overwrite');
+            $this->emDebug($data_json, $data2_json, $result, "Save Result");
 
           }
         }
