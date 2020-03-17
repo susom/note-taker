@@ -53,7 +53,7 @@
       "repeatable": true,
       "sub_settings": [
         {
-          "key": "event_id",
+          "key": "event-id",
           "name": "<b>Event id where the data is located</b><br/>Must include both source and destination fields",
           "required": true,
           "type": "event-list"
@@ -101,12 +101,8 @@
 		}
 	],
 
-	"crons": [
-
-	],
-
 	"compatibility": {
-		"php-version-min": "",
+		"php-version-min": "7.0",
 		"php-version-max": "",
 		"redcap-version-min": "",
 		"redcap-version-max": ""
