@@ -1,0 +1,60 @@
+{
+	"name": "NoteTaker",
+
+	"namespace": "Stanford\\NoteTaker",
+
+	"description": "A quick EM that allows comments to be added to a single notes field, formatted with user and timestamp.",
+
+	"documentation": "README.md",
+
+	"authors": [
+		{
+			"name": "Andrew Martin",
+			"email": "andy123@stanford.edu",
+			"institution": "Stanford Medicine"
+		},
+		{
+			"name": "Jordan Schultz",
+			"email": "jmschult@stanford.edu",
+			"institution": "Stanford Medicine"
+		}
+	],
+
+	"permissions": [
+		"redcap_save_record"
+	],
+	
+	"enable-every-page-hooks-on-system-pages": false,	
+
+	"links": {
+		"project": [
+
+		],
+		"control-center": [
+
+		]
+	},
+
+	"no-auth-pages": [
+
+	],
+
+	"project-settings": [
+
+	],
+
+	"system-settings": [
+
+	],
+
+	"crons": [
+
+	],
+
+	"compatibility": {
+		"php-version-min": "",
+		"php-version-max": "",
+		"redcap-version-min": "",
+		"redcap-version-max": ""
+	}
+}
