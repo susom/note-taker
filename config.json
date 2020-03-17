@@ -40,11 +40,65 @@
 	],
 
 	"project-settings": [
-
+        {
+      "key": "description",
+      "name": "<h6 class='text-center text-primary primary-success'><b>Instructions Go Here</b></h6><p>foobar</p>",
+      "type": "descriptive"
+    },
+    {
+      "key": "instance",
+      "name": "<b>Summarize Configuration</b>",
+      "required": true,
+      "type": "sub_settings",
+      "repeatable": true,
+      "sub_settings": [
+        {
+          "key": "event_id",
+          "name": "<b>Event id where the data is located</b><br/>Must include both source and destination fields",
+          "required": true,
+          "type": "event-list"
+        },
+        {
+          "key": "input-field",
+          "name": "<b>Input Field</b> (either <i>'text'</i> or <i>'textarea'</i> field)<br>NOTE: You will also need a field to display the piped results.",
+          "required": true,
+          "type": "field-list"
+        },
+        {
+          "key": "date-field",
+          "name": "<b>Date Field</b> (either <i>'text'</i> or <i>'textarea'</i> field)<br>NOTE: You will also need a field to display the piped results.",
+          "required": true,
+          "type": "field-list"
+        },
+        {
+          "key": "note-field",
+          "name": "<b>Note Field</b> (either <i>'text'</i> or <i>'textarea'</i> field)<br>NOTE: You will also need a field to display the piped results.",
+          "required": true,
+          "type": "field-list"
+        },
+        {
+          "key": "include-delimiter",
+          "name": "<b>Include a delimeter</b><br>If expecting longer input, you might want to add a delimiter between entriesWhen checked, the form completion statuses will automatically be removed.",
+          "required": false,
+          "type": "checkbox"
+        }
+      ]
+    },
+		{
+			"key": "enable-project-debug-logging",
+			"name": "<b>Enable Debug Logging</b><br><i>(optional)</i> Requires installation and configuration of emLogger",
+			"required": false,
+			"type": "checkbox"
+		}
 	],
 
 	"system-settings": [
-
+		{
+			"key": "enable-system-debug-logging",
+			"name": "<b>Enable Debug Logging (system-wide)</b><i>(optional)</i> Requires installation and configuration of emLogger",
+			"required": false,
+			"type": "checkbox"
+		}
 	],
 
 	"crons": [
