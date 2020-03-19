@@ -46,7 +46,7 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule {
         if (empty($instrument_fields)) $instrument_fields = REDCap::getFieldNames($instrument);
 
         // Check if input_field is in $instrument
-        if (in_array($instance["input-field"], $instrument_fields)) {
+        if (in_array($i_input_field, $instrument_fields)) {
           $this->emDebug($i_input_field . " is on this form! ");
 
           // Check if the input-field is empty
@@ -69,8 +69,13 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule {
             $this->emDebug("Update Note");
 
             //set date field to current time
-            $new_date_format = $this->getNewDateFormat($data,$i_date_field);
-            $data[$i_date_field] = Date($new_date_format);
+            $new_date_format = $this->getNewDateFormat($i_date_field);
+
+            if(!empty($new_date_format)){
+              $data[$i_date_field] = Date($new_date_format);
+            } else {
+              $this->emError("Specified validation type is not supported, date not chosen");
+            }
 
             //Update note box
             $data = $this->prependInput($data, $i_note_field, $i_input_field, $i_date_field, $i_include_delimiter);
@@ -86,12 +91,18 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule {
     }
   }
 
-  /** Returns the new date format based on value
-   * @param $data
+  /** Returns the new date format as a String based on set validation type specified in designer
+   * This format will be used for all dates in the prepended header
+   * Example Call -
+   *  $i_date_field = "testDateField"
+   *  $date_format = "datetime_seconds"
+   *  $tokenized = [datetime, seconds]
+   *  returns "Y-m-d H:i:s"
+   *
    * @param $i_date_field
    * @return String : representation of new date format
    */
-  private function getNewDateFormat($data, $i_date_field){
+  private function getNewDateFormat($i_date_field){
     global $Proj;
     $date_format = $Proj->metadata[$i_date_field]['element_validation_type'];
     $this->emDebug($i_date_field . " is " . $date_format);
@@ -112,11 +123,16 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule {
   }
 
 
-  /** Prepends String based on data object to the note field
+  /** Prepends Header String and input field value to previous note field within the data object
+   *  Example call -
+   *  $data = array(), $i_note_field = "notebox1" , $i_input_field = "Append Me", $i_date_field = "dateTime1", $i_include_delimiter = True
+   *  return -
+   *  data[notebox1] = "[<username> @ <dateNow> ] \n ---------------------- \n <previous note> \n
+   *
    * @param $data : data object containing the values of instrument instances
-   * @param $i_note_field : note field
-   * @param $i_input_field : input field
-   * @param $i_date_field : date field
+   * @param $i_note_field : note field name
+   * @param $i_input_field : input field name
+   * @param $i_date_field : date field name
    * @param $i_include_delimiter : T/F, whether to delimit note by a line
    * @return $data : updated data object
    **/
