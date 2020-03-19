@@ -124,9 +124,10 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule {
     if($data){
       $user = USERID;
       if(!empty($data[$i_note_field]) && $i_include_delimiter){ //If notes field already has been prepended to
-        $data[$i_note_field] = $data[$i_note_field] . "\n------------------------------------------------------------\n" . "[{$user} @ {$data[$i_date_field]}]\n" . $data[$i_input_field];
+        $data[$i_note_field] =  "[{$user} @ {$data[$i_date_field]}]\n" . $data[$i_input_field] . "\n------------------------------------------------------------\n" . $data[$i_note_field] . "\n";
       } else { //New note, no need for delimiter
-        $data[$i_note_field] = $data[$i_note_field] . "\n[{$user} @ {$data[$i_date_field]}]\n" . $data[$i_input_field];
+        $data[$i_note_field] =  "[{$user} @ {$data[$i_date_field]}]\n" . $data[$i_input_field]. "\n" . $data[$i_note_field] . "\n";
+//        $data[$i_note_field] = $data[$i_note_field] . "\n[{$user} @ {$data[$i_date_field]}]\n" . $data[$i_input_field];
       }
 
       // Erase input field
