@@ -41,7 +41,7 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule {
       $instrument_fields = "";
 
       // Only process this config if the form is in the same event id
-      if ($instance["event-id"] == $event_id) {
+      if ($i_event_id == $event_id) {
 
         if (empty($instrument_fields)) $instrument_fields = REDCap::getFieldNames($instrument);
 
