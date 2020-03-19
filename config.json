@@ -23,8 +23,8 @@
 	"permissions": [
 		"redcap_save_record"
 	],
-	
-	"enable-every-page-hooks-on-system-pages": false,	
+
+	"enable-every-page-hooks-on-system-pages": false,
 
 	"links": {
 		"project": [
@@ -60,19 +60,19 @@
         },
         {
           "key": "input-field",
-          "name": "<b>Input Field</b> (either <i>'text'</i> or <i>'textarea'</i> field)<br>NOTE: You will also need a field to display the piped results.",
+          "name": "<b>Input Field</b> (either <i>'text'</i> or <i>'textarea'</i> field)<br>This field's value will be added to the designated note field upon record save. <br> NOTE: You will also need a field to display the piped results.",
           "required": true,
           "type": "field-list"
         },
         {
           "key": "date-field",
-          "name": "<b>Date Field</b> (either <i>'text'</i> or <i>'textarea'</i> field)<br>NOTE: You will also need a field to display the piped results.",
+          "name": "<b>Date Field</b> (either <i>'text'</i> or <i>'textarea'</i> field)<br>This field's value will be populated with the current time & date upon record save <br> NOTE: You will also need a field to display the piped results.",
           "required": true,
           "type": "field-list"
         },
         {
           "key": "note-field",
-          "name": "<b>Note Field</b> (either <i>'text'</i> or <i>'textarea'</i> field)<br>NOTE: You will also need a field to display the piped results.",
+          "name": "<b>Note Field</b> (either <i>'text'</i> or <i>'textarea'</i> field)<br>This field's value will be all previous notes prepended with the input field's value upon record save. <br> NOTE: You will also need a field to display the piped results.",
           "required": true,
           "type": "field-list"
         },
