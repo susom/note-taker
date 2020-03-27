@@ -1,7 +1,10 @@
 # NoteTaker
 An EM that allows comments to be added to a single notes field, formatted with user and timestamp.
 
-Notes will be arranged newest to oldest and prepended with a header with the following format : [username @ date]
+Notes will be arranged newest to oldest and prepended with a header with the following format:
+```text
+[username @ date] Note...
+```
 
 ## Project Setup
 To add a log to a form, you need three fields:
@@ -14,11 +17,12 @@ To add a log to a form, you need three fields:
 
 ##Configuration options
 The following instrument fields can be specified:
-1. [Arm & Event ID] : The event where the records intended to be affected by this EM on are located
-1. [Input Field] : The input instance you would like to pull text from to be added to the notes field
-1. [Date Field] : The date field that will be populated anytime a user edits the input field. Formats include date, datetime and datetime_seconds
-1. [Notes Field] : The field that contains all input field text separated by a header and optional delimiter
-1. [Include a delimiter] : If checked, will separate each valid record update with a string "______________"
+1. *[Arm & Event ID]* : The event where the records intended to be affected by this EM on are located
+1. *[Input Field]* : The input instance you would like to pull text from to be added to the notes field
+1. *[Date Field]* : The date field that will be populated anytime a user edits the input field. Formats include date, datetime and datetime_seconds
+1. *[Notes Field]* : The field that contains all input field text separated by a header and optional delimiter
+1. *[Include New Line]* : If checked, the new note will start on a new line
+1. *[Include a delimiter]* : If checked, will separate each valid record update with a string "------------------------------------------------------------"
 
 
 ##Notes:
@@ -29,5 +33,3 @@ When choosing between validation formats for date in the designer, feel free to 
 
 Note however that the header will be formatted in (Y-M-D) regardless of your choice. The only difference being the specificity rather than the order.
 If specifying an altering order, the data will save in (Y-M-D) format, and you might receive an alert message upon record save.
-
-

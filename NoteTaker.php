@@ -11,14 +11,7 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule
 
     use emLoggerTrait;
 
-    const DELIMETER = "\n------------------------------------------------------------\n";
-
-    public function __construct()
-    {
-        parent::__construct();
-        // Other code to run when object is instantiated
-    }
-
+    const DELIMITER = "\n------------------------------------------------------------\n";
 
     /** Prepends an entry into notebox specified by user upon record save
      * @param      $project_id
@@ -33,7 +26,8 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule
      */
     public function redcap_save_record($project_id, $record = NULL, $instrument, $event_id, $group_id = NULL, $survey_hash, $response_id, $repeat_instance = 1)
     {
-        $instances = $this->getSubSettings('instance'); // Take the current instrument and get all the fields.  Then check if the 'input field' is present in the instrument fields and is not empty.  If so, then add a log entry...
+        // Take the current instrument and get all the fields.
+        $instances = $this->getSubSettings('instance');
 
         // Loop over all instances
         foreach ($instances as $i => $instance) {
@@ -43,58 +37,52 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule
             $i_note_field        = $instance['note-field'];
             $i_input_field       = $instance['input-field'];
             $i_include_delimiter = $instance['include-delimiter'];
+            $i_include_new_line  = $instance['include-new-line'];
 
             $instrument_fields = "";
 
-            // Only process this config if the form just saved matches the instance event id
-            if ($i_event_id == $event_id) {
+            // Only process this config if the event just saved matches the instance event id
+            if ($i_event_id !== $event_id) continue;
 
-                // Load the fields on the instrument
-                if (empty($instrument_fields)) $instrument_fields = REDCap::getFieldNames($instrument);
+            // Load the fields on the instrument just saved
+            if (empty($instrument_fields)) $instrument_fields = REDCap::getFieldNames($instrument);
 
-                // Check if input_field is in $instrument
-                if (in_array($i_input_field, $instrument_fields)) {
-                    $this->emDebug($i_input_field . " is on this form in event $event_id!");
+            // If the input_field isn't on the form, then continue
+            if (!in_array($i_input_field, $instrument_fields)) continue;
+            $this->emDebug($i_input_field . " is on this form in event $event_id!");
 
-                    // Check if the input-field is empty after the last save
-                    $fields = [
-                        $i_input_field,
-                        $i_date_field,
-                        $i_note_field
-                    ];
+            // Pull data to check if the input-field had an entry
+            $fields = [ $i_input_field, $i_date_field, $i_note_field ];
+            $data_json = REDCap::getData('json', $record, array($fields), $event_id);
+            $data = json_decode($data_json, true);
+            $data = $data[0];
+            // $this->emDebug("Record $record note data", $data_data);
 
-                    $data_json = REDCap::getData('json', $record, array($fields), $event_id);
-                    $data = json_decode($data_json, true);
-                    $data = $data[0];
+            // Check if there is any input to be prepended to notes
+            if (empty($data[$i_input_field])) continue;
 
-                    $this->emDebug("Record $record current data", $data);
+            // There is a new note entry
+            $this->emDebug("Updating Note: {$data[$i_input_field]}");
 
-                    //Check if there is any input to be prepended to notes
-                    if (!empty($data[$i_input_field])) {
-                        // Update
-                        $this->emDebug("Update Note");
+            // Set date field to current time
+            $new_date_format = $this->getNewDateFormat($i_date_field);
+            $new_date = empty($new_date_format) ? "" : Date($new_date_format);
+            $user = USERID;
+            $new_note = $this->appendNote($data[$i_note_field], $data[$i_input_field], $new_date, USERID, $i_include_delimiter, $i_include_new_line);
 
-                        // Set date field to current time
-                        $new_date_format = $this->getNewDateFormat($i_date_field);
-                        if (!empty($new_date_format)) {
-                            $data[$i_date_field] = Date($new_date_format);
-                        } else {
-                            $this->emError("Specified validation type is not supported, date not chosen");
-                        }
+            $data[$i_note_field] = $new_note;
+            $data[$i_date_field] = $new_date;
+            $data[$i_input_field] = "";
 
-                        // Update note box with the latest note
-                        $data = $this->prependInput($data, $i_note_field, $i_input_field, $i_date_field, $i_include_delimiter);
-                        // $this->emDebug("Data after update", $data);
-
-                        // Save
-                        $data2_json = json_encode(array($data));
-                        $result     = REDCap::saveData('json', $data2_json, 'overwrite');
-                        $this->emDebug($data_json, $data2_json, $result, "Save Result");
-                    }
-                }
-            }
+            // Save
+            $output_json = json_encode(array($data));
+            $result      = REDCap::saveData('json', $output_json, 'overwrite');
+            // $this->emDebug($data_json, $output_json);
+            if (!empty($result['errors'])) $this->emError("Errors saving result: ", $data_json, $output_json, $result);
         }
+
     }
+
 
 
     /** Returns the new date format as a String based on set validation type specified in designer
@@ -112,7 +100,7 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule
     {
         global $Proj;
         $date_format = $Proj->metadata[$i_date_field]['element_validation_type'];
-        $this->emDebug($i_date_field . " is " . $date_format);
+        // $this->emDebug($i_date_field . " is " . $date_format);
 
         $tokenized = explode("_", $date_format);
 
@@ -123,41 +111,33 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule
         } else if (in_array("date", $tokenized)) { //Regular date
             $new_date_format = "Y-m-d";
         } else {
-            return '';
+            $this->emError("Specified validation type is not supported for field $i_date_field -- date not chosen");
+            $new_date_format = '';
         }
 
         return $new_date_format;
     }
 
 
-    /** Prepends Header String and input field value to previous note field within the data object
-     *  Example call -
-     *  $data = array(), $i_note_field = "notebox1" , $i_input_field = "Append Me", $i_date_field = "dateTime1",
-     * $i_include_delimiter = True return - data[notebox1] = "[<username> @ <dateNow> ] \n ---------------------- \n
-     * <previous note> \n
-     *
-     * @param $data : data object containing the values of instrument instances
-     * @param $i_note_field : note field name
-     * @param $i_input_field : input field name
-     * @param $i_date_field : date field name
-     * @param $i_include_delimiter : T/F, whether to delimit note by a line
-     * @return $data : updated data object
-     **/
-    private function prependInput($data, $i_note_field, $i_input_field, $i_date_field, $i_include_delimiter)
+    /**
+     * Take the current note text and append in the new values
+     * @param string $current_note
+     * @param string $new_note
+     * @param string $date
+     * @param string $user
+     * @param bool $use_delimiter
+     * @param bool $add_newline
+     * @return string
+     */
+    private function appendNote($current_note, $new_note, $date, $user, $use_delimiter, $add_newline)
     {
-        if ($data) {
-            $user = USERID;
-            $delimiter = $i_include_delimiter ? self::DELIMETER : "\n";
-
-            if (!empty($data[$i_note_field]) && $i_include_delimiter) { //If notes field already has been prepended to
-                $data[$i_note_field] = "[{$user} @ {$data[$i_date_field]}]\n" . $data[$i_input_field] . $delimiter . $data[$i_note_field] . "\n";
-            }
-
-            // Erase input field
-            $data[$i_input_field] = "";
-            return $data;
-        }
-        $this->emError('Data object supplied is empty');
+        $delimiter = $use_delimiter ? self::DELIMITER : "\n\n";
+        $entry = "[{$user} @ {$date}]" .
+            ($add_newline ? "\n" : " ") .
+            $new_note;
+        $result = empty($current_note) ? $entry : $entry . $delimiter . $current_note;
+        return $result;
     }
+
 
 }
