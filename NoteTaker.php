@@ -27,12 +27,15 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule {
    * @return bool
    */
   public function redcap_save_record($project_id, $record = NULL, $instrument, $event_id, $group_id = NULL, $survey_hash, $response_id, $repeat_instance = 1 ){
+    global $Proj;
     $instances = $this->getSubSettings('instance'); // Take the current insturment and get all the fields.  Then check if the 'input field' is present in the instrument fields and is not empty.  If so, then add a log entry...
+    $RepeatingFormsEvents = $Proj->hasRepeatingFormsEvents();
+    $event_name = REDCap::getEventNames(true,true,$event_id);
 
     // Loop over all instances
     foreach ($instances as $i => $instance) {
       //grab all names of instances within the instrument
-      $i_event_id   = $instance['event-id'];
+      $i_event_id = $instance['event-id'];
       $i_date_field = $instance['date-field'];
       $i_note_field = $instance['note-field'];
       $i_input_field = $instance['input-field'];
@@ -40,7 +43,6 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule {
 
       $instrument_fields = "";
 
-      // Only process this config if the form is in the same event id
       if ($i_event_id == $event_id) {
 
         if (empty($instrument_fields)) $instrument_fields = REDCap::getFieldNames($instrument);
@@ -48,6 +50,17 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule {
         // Check if input_field is in $instrument
         if (in_array($i_input_field, $instrument_fields)) {
           $this->emDebug($i_input_field . " is on this form! ");
+
+          if($RepeatingFormsEvents){
+            if (!empty($Proj->RepeatingFormsEvents[$event_id][$instrument])) {
+              REDCap::logEvent("NOTETAKER EM ERROR", "$instrument in $event_name cannot be used with Notetaker because it is repeating", "", $record, $event_id, $project_id);
+              return "";
+            }
+            if (isset($Proj->RepeatingFormsEvents[$event_id]) && $RepeatingFormsEvents[$event_id] == "WHOLE") {
+              REDCap::logEvent("NOTETAKER EM ERROR", "$event_name cannot be used with NoteTaker because it is repeating", "", $record, $event_id, $project_id);
+              return "";
+            }
+          }
 
           // Check if the input-field is empty
           $fields = [
@@ -71,7 +84,7 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule {
             //set date field to current time
             $new_date_format = $this->getNewDateFormat($i_date_field);
 
-            if(!empty($new_date_format)){
+            if (!empty($new_date_format)) {
               $data[$i_date_field] = Date($new_date_format);
             } else {
               $this->emError("Specified validation type is not supported, date not chosen");
