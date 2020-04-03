@@ -26,6 +26,11 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule
      */
     public function redcap_save_record($project_id, $record = NULL, $instrument, $event_id, $group_id = NULL, $survey_hash, $response_id, $repeat_instance = 1)
     {
+        global $Proj;
+        $instances = $this->getSubSettings('instance'); // Take the current insturment and get all the fields.  Then check if the 'input field' is present in the instrument fields and is not empty.  If so, then add a log entry...
+        $RepeatingFormsEvents = $Proj->hasRepeatingFormsEvents();
+        $event_name = REDCap::getEventNames(true,true,$event_id);
+
         // Take the current instrument and get all the fields.
         $instances = $this->getSubSettings('instance');
 
@@ -50,6 +55,17 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule
             // If the input_field isn't on the form, then continue
             if (!in_array($i_input_field, $instrument_fields)) continue;
             $this->emDebug($i_input_field . " is on this form in event $event_id!");
+
+            if($RepeatingFormsEvents) {
+                if (!empty($Proj->RepeatingFormsEvents[$event_id][$instrument])) {
+                    REDCap::logEvent("NOTETAKER EM ERROR", "$instrument in $event_name cannot be used with Notetaker because it is repeating", "", $record, $event_id, $project_id);
+                    return "";
+                }
+                if (isset($Proj->RepeatingFormsEvents[$event_id]) && $RepeatingFormsEvents[$event_id] == "WHOLE") {
+                    REDCap::logEvent("NOTETAKER EM ERROR", "$event_name cannot be used with NoteTaker because it is repeating", "", $record, $event_id, $project_id);
+                    return "";
+                }
+            }
 
             // Pull data to check if the input-field had an entry
             $fields = [ $i_input_field, $i_date_field, $i_note_field ];
