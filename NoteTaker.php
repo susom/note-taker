@@ -68,8 +68,8 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule
             }
 
             // Pull data to check if the input-field had an entry
-            $fields = [ $i_input_field, $i_date_field, $i_note_field ];
-            $data_json = REDCap::getData('json', $record, array($fields), $event_id);
+            $fields = [ $i_input_field, $i_date_field, $i_note_field, REDCap::getRecordIdField()];
+            $data_json = REDCap::getData('json', $record, $fields, $event_id);
             $data = json_decode($data_json, true);
             $data = $data[0];
             // $this->emDebug("Record $record note data", $data_data);
