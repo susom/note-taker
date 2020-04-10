@@ -33,3 +33,10 @@ When choosing between validation formats for date in the designer, feel free to 
 
 Note however that the header will be formatted in (Y-M-D) regardless of your choice. The only difference being the specificity rather than the order.
 If specifying an altering order, the data will save in (Y-M-D) format, and you might receive an alert message upon record save.
+
+##Additional Fields:
+
+NoteTaker has the option of specifying additional fields beyond the designated input field to append to the Notes field.
+The format for these fields will be outputted in the format : (fieldname=>value)
+
+####Please Note that additional fields specified will not be added to the Notes field if the default Input field has no value.
