@@ -32,7 +32,7 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule
         $event_name = REDCap::getEventNames(true,true,$event_id);
 
         // Take the current instrument and get all the fields.
-        $instances = $this->getSubSettings('instance');
+        $nested = $this->getProjectSetting('additional-field');
 
         // Loop over all instances
         foreach ($instances as $i => $instance) {
@@ -43,7 +43,7 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule
             $i_input_field       = $instance['input-field'];
             $i_include_delimiter = $instance['include-delimiter'];
             $i_include_new_line  = $instance['include-new-line'];
-
+            $nested_field_names = !empty($nested) ? $nested[$i] : []; // Gather corresponding additional-field names for this instance if exists
             $instrument_fields = "";
 
             // Only process this config if the event just saved matches the instance event id
@@ -70,11 +70,23 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule
             // Pull data to check if the input-field had an entry
             $fields = [ $i_input_field, $i_date_field, $i_note_field, REDCap::getRecordIdField()];
             $data_json = REDCap::getData('json', $record, $fields, $event_id);
-            $data = json_decode($data_json, true);
-            $data = $data[0];
-            // $this->emDebug("Record $record note data", $data_data);
+            $data = json_decode($data_json, true)[0];
 
-            // Check if there is any input to be prepended to notes
+            $nested_data = ""; //Declared outside as empty to prevent undefined error when appending note
+            if(!empty($nested_field_names)){ //Check if there are any sub_fields specified
+                $additional_fields_json = REDCap::getData('json', $record, $nested_field_names, $event_id);
+                $nested_data = json_decode($additional_fields_json, true)[0];
+
+                foreach($nested_data as $label=>$value){ //Replace additional-field type with correct values (radio/dropdown/etc)
+                    $check = parseEnum($Proj->metadata[$label]["element_enum"]);
+                    if(!empty($check)){
+                        $readable_value = $check[(int)$value];
+                        $nested_data[$label] = $readable_value;
+                    }
+                }
+            }
+
+            // Check if there is any input to be prepended to notes. Only allow posting when initial input field has value
             if (empty($data[$i_input_field])) continue;
 
             // There is a new note entry
@@ -84,11 +96,17 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule
             $new_date_format = $this->getNewDateFormat($i_date_field);
             $new_date = empty($new_date_format) ? "" : Date($new_date_format);
             $user = USERID;
-            $new_note = $this->appendNote($data[$i_note_field], $data[$i_input_field], $new_date, USERID, $i_include_delimiter, $i_include_new_line);
+            $new_note = $this->appendNote($data[$i_note_field], $data[$i_input_field], $new_date, USERID, $i_include_delimiter, $i_include_new_line,  $nested_data);
 
+            //Set new data object to update record
             $data[$i_note_field] = $new_note;
             $data[$i_date_field] = $new_date;
             $data[$i_input_field] = "";
+
+            //Set additional-fields to empty, merge to main data object for update
+            foreach($nested_data as $k => $v)
+                $nested_data[$k] = "";
+            $data = array_merge($data, $nested_data);
 
             // Save
             $output_json = json_encode(array($data));
@@ -145,12 +163,18 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule
      * @param bool $add_newline
      * @return string
      */
-    private function appendNote($current_note, $new_note, $date, $user, $use_delimiter, $add_newline)
+    private function appendNote($current_note, $new_note, $date, $user, $use_delimiter, $add_newline, $additional_fields)
     {
         $delimiter = $use_delimiter ? self::DELIMITER : "\n\n";
         $entry = "[{$user} @ {$date}]" .
             ($add_newline ? "\n" : " ") .
             $new_note;
+
+        if(!empty($additional_fields)){
+            foreach($additional_fields as $field => $val)
+                $entry.="\n({$field} => {$val})";
+        }
+
         $result = empty($current_note) ? $entry : $entry . $delimiter . $current_note;
         return $result;
     }

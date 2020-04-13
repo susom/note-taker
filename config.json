@@ -1,116 +1,117 @@
 {
-	"name": "NoteTaker",
-
-	"namespace": "Stanford\\NoteTaker",
-
-	"description": "A quick EM that allows comments to be added to a single notes field, formatted with user and timestamp.",
-
-	"documentation": "README.md",
-
-	"authors": [
-		{
-			"name": "Andrew Martin",
-			"email": "andy123@stanford.edu",
-			"institution": "Stanford Medicine"
-		},
-		{
-			"name": "Jordan Schultz",
-			"email": "jmschult@stanford.edu",
-			"institution": "Stanford Medicine"
-		}
-	],
-
-	"permissions": [
-		"redcap_save_record"
-	],
-
-	"enable-every-page-hooks-on-system-pages": false,
-
-	"links": {
-		"project": [
-
-		],
-		"control-center": [
-
-		]
-	},
-
-	"no-auth-pages": [
-
-	],
-
-	"project-settings": [
+    "name": "NoteTaker",
+    "namespace": "Stanford\\NoteTaker",
+    "description": "A quick EM that allows comments to be added to a single notes field, formatted with user and timestamp.",
+    "documentation": "README.md",
+    "authors": [
         {
-      "key": "description",
-      "name": "<h6 class='text-center text-primary primary-success'><b>Note Taker Instructions</b></h6><p>Each block for notes requires three fields be configured</p>",
-      "type": "descriptive"
-    },
-    {
-      "key": "instance",
-      "name": "<b>Note Taker Configuration</b>",
-      "required": true,
-      "type": "sub_settings",
-      "repeatable": true,
-      "sub_settings": [
-        {
-          "key": "event-id",
-          "name": "<b>Event id where the data is located</b><br/>Must include both source and destination fields",
-          "required": true,
-          "type": "event-list"
+            "name": "Andrew Martin",
+            "email": "andy123@stanford.edu",
+            "institution": "Stanford Medicine"
         },
         {
-          "key": "input-field",
-          "name": "<b>Input Field</b> (either <i>'text'</i> or <i>'textarea'</i> field)<br>This field's value will be added to the designated note field upon record save.",
-          "required": true,
-          "type": "field-list"
-        },
-        {
-          "key": "date-field",
-          "name": "<b>Date Field</b> (must be validated as date or date/time)<br>This field's value will be populated with the current time & date upon record save (useful for report filters)",
-          "required": true,
-          "type": "field-list"
-        },
-        {
-          "key": "note-field",
-          "name": "<b>Note Field</b> (either <i>'text'</i> or <i>'textarea'</i> field)<br>This field's value will be all previous notes prepended with the input field's value upon record save. <br> NOTE: You will also need a field to display the piped results.",
-          "required": true,
-          "type": "field-list"
-        },
-        {
-          "key": "include-new-line",
-          "name": "<b>Include New Line after detail</b><br>If checked, the note will start on a new line as opposed to right after the current timestamp",
-          "required": false,
-          "type": "checkbox"
-        },
-        {
-          "key": "include-delimiter",
-          "name": "<b>Include a delimiter</b><br>If expecting longer input, you might want to add a delimiter between entries",
-          "required": false,
-          "type": "checkbox"
+            "name": "Jordan Schultz",
+            "email": "jmschult@stanford.edu",
+            "institution": "Stanford Medicine"
         }
-      ]
+    ],
+    "permissions": [
+        "redcap_save_record"
+    ],
+    "enable-every-page-hooks-on-system-pages": false,
+    "links": {
+        "project": [
+        ],
+        "control-center": [
+        ]
     },
-		{
-			"key": "enable-project-debug-logging",
-			"name": "<b>Enable Debug Logging</b><br><i>(optional)</i> Requires installation and configuration of emLogger",
-			"required": false,
-			"type": "checkbox"
-		}
-	],
-
-	"system-settings": [
-		{
-			"key": "enable-system-debug-logging",
-			"name": "<b>Enable Debug Logging (system-wide)</b><i>(optional)</i> Requires installation and configuration of emLogger",
-			"required": false,
-			"type": "checkbox"
-		}
-	],
-
-	"compatibility": {
-		"php-version-min": "7.0",
-		"php-version-max": "",
-		"redcap-version-min": "",
-		"redcap-version-max": ""
-	}
+    "no-auth-pages": [
+    ],
+    "project-settings": [
+        {
+            "key": "description",
+            "name": "<h6 class='text-center text-primary primary-success'><b>Note Taker Instructions</b></h6><p>Each block for notes requires three fields be configured</p>",
+            "type": "descriptive"
+        },
+        {
+            "key": "instance",
+            "name": "<b>Note Taker Configuration</b>",
+            "required": true,
+            "type": "sub_settings",
+            "repeatable": true,
+            "sub_settings": [
+                {
+                    "key": "event-id",
+                    "name": "<b>Event id where the data is located</b><br/>Must include both source and destination fields",
+                    "required": true,
+                    "type": "event-list"
+                },
+                {
+                    "key": "input-field",
+                    "name": "<b>Input Field</b> (either <i>'text'</i> or <i>'textarea'</i> field)<br>This field's value will be added to the designated note field upon record save.",
+                    "required": true,
+                    "type": "field-list"
+                },
+                {
+                    "key": "additional-fields",
+                    "name": "<b>Additional Fields</b>",
+                    "required": false,
+                    "type": "sub_settings",
+                    "repeatable": true,
+                    "sub_settings": [
+                        {
+                            "key": "additional-field",
+                            "name": "<b>Additional Field</b> (either <i>'radio'</i> or <i>'dropdown'</i> or <i>'text'</i>)<br>This field's value will also be added to the designated note field upon record save.",
+                            "required": false,
+                            "type": "field-list"
+                        }
+                    ]
+                },
+                {
+                    "key": "date-field",
+                    "name": "<b>Date Field last modified</b> (must be validated as date or date/time)<br>This field's value will be populated with the current time & date upon record save (useful for report filters)",
+                    "required": true,
+                    "type": "field-list"
+                },
+                {
+                    "key": "note-field",
+                    "name": "<b>Note Field</b> (either <i>'text'</i> or <i>'textarea'</i> field)<br>This field's value will be all previous notes prepended with the input field's value upon record save. <br> NOTE: You will also need a field to display the piped results.",
+                    "required": true,
+                    "type": "field-list"
+                },
+                {
+                    "key": "include-new-line",
+                    "name": "<b>Include New Line after detail</b><br>If checked, the note will start on a new line as opposed to right after the current timestamp",
+                    "required": false,
+                    "type": "checkbox"
+                },
+                {
+                    "key": "include-delimiter",
+                    "name": "<b>Include a delimiter</b><br>If expecting longer input, you might want to add a delimiter between entries",
+                    "required": false,
+                    "type": "checkbox"
+                }
+            ]
+        },
+        {
+            "key": "enable-project-debug-logging",
+            "name": "<b>Enable Debug Logging</b><br><i>(optional)</i> Requires installation and configuration of emLogger",
+            "required": false,
+            "type": "checkbox"
+        }
+    ],
+    "system-settings": [
+        {
+            "key": "enable-system-debug-logging",
+            "name": "<b>Enable Debug Logging (system-wide)</b><i>(optional)</i> Requires installation and configuration of emLogger",
+            "required": false,
+            "type": "checkbox"
+        }
+    ],
+    "compatibility": {
+        "php-version-min": "7.0",
+        "php-version-max": "",
+        "redcap-version-min": "",
+        "redcap-version-max": ""
+    }
 }
