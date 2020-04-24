@@ -31,9 +31,6 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule
         $RepeatingFormsEvents = $Proj->hasRepeatingFormsEvents();
         $event_name = REDCap::getEventNames(true,true,$event_id);
 
-        // Take the current instrument and get all the fields.
-        $nested = $this->getProjectSetting('additional-field');
-
         // Loop over all instances
         foreach ($instances as $i => $instance) {
             // Get fields from current instance
@@ -42,19 +39,14 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule
             $i_note_field        = $instance['note-field'];
             $i_input_field       = $instance['input-field'];
             $i_include_delimiter = $instance['include-delimiter'];
-            $i_include_new_line  = $instance['include-new-line'];
-            $nested_field_names = !empty($nested) ? $nested[$i] : []; // Gather corresponding additional-field names for this instance if exists
-            $instrument_fields = "";
+            $instrument_fields = REDCap::getFieldNames($instrument); // Load the fields on the instrument just saved
 
             // Only process this config if the event just saved matches the instance event id
             if ($i_event_id !== $event_id) continue;
 
-            // Load the fields on the instrument just saved
-            if (empty($instrument_fields)) $instrument_fields = REDCap::getFieldNames($instrument);
-
-            // If the input_field isn't on the form, then continue
-            if (!in_array($i_input_field, $instrument_fields)) continue;
-            $this->emDebug($i_input_field . " is on this form in event $event_id!");
+            // If the input_fields aren't all on the form, then continue
+            foreach($i_input_field as $field)
+                if(!in_array($field, $instrument_fields)) continue;
 
             if($RepeatingFormsEvents) {
                 if (!empty($Proj->RepeatingFormsEvents[$event_id][$instrument])) {
@@ -68,26 +60,21 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule
             }
 
             // Pull data to check if the input-field had an entry
-            $fields = [ $i_input_field, $i_date_field, $i_note_field, REDCap::getRecordIdField()];
+            $fields = array_merge($i_input_field, array($i_date_field, $i_note_field, REDCap::getRecordIdField()));
             $data_json = REDCap::getData('json', $record, $fields, $event_id);
             $data = json_decode($data_json, true)[0];
 
-            $nested_data = ""; //Declared outside as empty to prevent undefined error when appending note
-            if(!empty($nested_field_names)){ //Check if there are any sub_fields specified
-                $additional_fields_json = REDCap::getData('json', $record, $nested_field_names, $event_id);
-                $nested_data = json_decode($additional_fields_json, true)[0];
+            if(!$this->checkValidity($i_input_field, $data)) continue;
 
-                foreach($nested_data as $label=>$value){ //Replace additional-field type with correct values (radio/dropdown/etc)
-                    $check = parseEnum($Proj->metadata[$label]["element_enum"]);
+            //check if any inputs are radio/dropdown, if so replace with labels
+            foreach($i_input_field as $label){
+                $check = parseEnum($Proj->metadata[$label]["element_enum"]);
                     if(!empty($check)){
-                        $readable_value = $check[(int)$value];
-                        $nested_data[$label] = $readable_value;
+                        $numerical_value = (int)$data[$label];
+                        $readable_value = $check[$numerical_value];
+                        $data[$label] = $readable_value;  //set data value
                     }
-                }
             }
-
-            // Check if there is any input to be prepended to notes. Only allow posting when initial input field has value
-            if (empty($data[$i_input_field])) continue;
 
             // There is a new note entry
             $this->emDebug("Updating Note: {$data[$i_input_field]}");
@@ -95,29 +82,45 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule
             // Set date field to current time
             $new_date_format = $this->getNewDateFormat($i_date_field);
             $new_date = empty($new_date_format) ? "" : Date($new_date_format);
-            $user = USERID;
-            $new_note = $this->appendNote($data[$i_note_field], $data[$i_input_field], $new_date, USERID, $i_include_delimiter, $i_include_new_line,  $nested_data);
+            $new_note = $this->appendNote($data, $i_note_field, $i_input_field, $new_date, USERID, $i_include_delimiter);
 
             //Set new data object to update record
             $data[$i_note_field] = $new_note;
             $data[$i_date_field] = $new_date;
-            $data[$i_input_field] = "";
 
-            //Set additional-fields to empty, merge to main data object for update
-            foreach($nested_data as $k => $v)
-                $nested_data[$k] = "";
-            $data = array_merge($data, $nested_data);
+            //Clear fields
+            foreach($i_input_field as $field)
+                $data[$field] = "";
 
             // Save
             $output_json = json_encode(array($data));
             $result      = REDCap::saveData('json', $output_json, 'overwrite');
-            // $this->emDebug($data_json, $output_json);
             if (!empty($result['errors'])) $this->emError("Errors saving result: ", $data_json, $output_json, $result);
         }
 
     }
 
+    /** Function that determines if record save is valid. Returns false only when all input fields are empty
+     * @param $input_fields {Array} field names of inputs to pull from
+     * @param $data : data object to check
+     * @return bool
+     */
+    public function checkValidity($input_fields, $data)
+    {
+        if(!isset($input_fields) || !isset($data)){
+            $this->emError("Error in passing arguments into checkValidity");
+            return false;
+        }
 
+        foreach($input_fields as $field){
+            if(empty($data[$field]))
+                continue;
+            else //if one field is populated return true
+                return true;
+        }
+
+        return false;
+    }
 
     /** Returns the new date format as a String based on set validation type specified in designer
      * This format will be used for all dates in the prepended header
@@ -163,19 +166,21 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule
      * @param bool $add_newline
      * @return string
      */
-    private function appendNote($current_note, $new_note, $date, $user, $use_delimiter, $add_newline, $additional_fields)
+    private function appendNote($data, $i_note_field, $i_input_field, $date, $user, $use_delimiter)
     {
         $delimiter = $use_delimiter ? self::DELIMITER : "\n\n";
-        $entry = "[{$user} @ {$date}]" .
-            ($add_newline ? "\n" : " ") .
-            $new_note;
+        $entry = "[{$user} @ {$date}]";
 
-        if(!empty($additional_fields)){
-            foreach($additional_fields as $field => $val)
-                $entry.="\n({$field} => {$val})";
+        if(count($i_input_field) === 1){ //If only one note field, label is not necessary
+            $entry .= "\n" . $data[$i_input_field[0]];
+        } else { //Else provide label distinction
+            foreach($i_input_field as $field){
+                if(!empty($data[$field]))
+                    $entry .= "\n" ."({$field}) " . $data[$field];
+            }
         }
 
-        $result = empty($current_note) ? $entry : $entry . $delimiter . $current_note;
+        $result = empty($data[$i_note_field]) ? $entry : $entry . $delimiter . $data[$i_note_field];
         return $result;
     }
 

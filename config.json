@@ -48,24 +48,10 @@
                 },
                 {
                     "key": "input-field",
-                    "name": "<b>Input Field</b> (either <i>'text'</i> or <i>'textarea'</i> field)<br>This field's value will be added to the designated note field upon record save.",
+                    "name": "<b>Input Field</b>(either <i>'text'</i> or <i>'dropdown'</i> or <i>'radio'</i>)<br>This field's value will be added to the designated note field upon record save.",
                     "required": true,
-                    "type": "field-list"
-                },
-                {
-                    "key": "additional-fields",
-                    "name": "<b>Additional Fields</b>",
-                    "required": false,
-                    "type": "sub_settings",
-                    "repeatable": true,
-                    "sub_settings": [
-                        {
-                            "key": "additional-field",
-                            "name": "<b>Additional Field</b> (either <i>'radio'</i> or <i>'dropdown'</i> or <i>'text'</i>)<br>This field's value will also be added to the designated note field upon record save.",
-                            "required": false,
-                            "type": "field-list"
-                        }
-                    ]
+                    "type": "field-list",
+                    "repeatable": true
                 },
                 {
                     "key": "date-field",
@@ -78,12 +64,6 @@
                     "name": "<b>Note Field</b> (either <i>'text'</i> or <i>'textarea'</i> field)<br>This field's value will be all previous notes prepended with the input field's value upon record save. <br> NOTE: You will also need a field to display the piped results.",
                     "required": true,
                     "type": "field-list"
-                },
-                {
-                    "key": "include-new-line",
-                    "name": "<b>Include New Line after detail</b><br>If checked, the note will start on a new line as opposed to right after the current timestamp",
-                    "required": false,
-                    "type": "checkbox"
                 },
                 {
                     "key": "include-delimiter",
