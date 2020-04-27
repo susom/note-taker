@@ -18,7 +18,7 @@ To add a log to a form, you need three fields:
 ##Configuration options
 The following instrument fields can be specified:
 1. *[Arm & Event ID]* : The event where the records intended to be affected by this EM on are located
-1. *[Input Field]* : The input instance you would like to pull text from to be added to the notes field
+1. *[Input Field]* : The input instance you would like to pull text from to be added to the notes field (Supported Formats: Input/Radio/Dropdown/Select Many)
 1. *[Date Field]* : The date field that will be populated anytime a user edits the input field. Formats include date, datetime and datetime_seconds
 1. *[Notes Field]* : The field that contains all input field text separated by a header and optional delimiter
 1. *[Include a delimiter]* : If checked, will separate each valid record update with a string "------------------------------------------------------------"
