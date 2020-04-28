@@ -63,18 +63,35 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule
             $fields = array_merge($i_input_field, array($i_date_field, $i_note_field, REDCap::getRecordIdField()));
             $data_json = REDCap::getData('json', $record, $fields, $event_id);
             $data = json_decode($data_json, true)[0];
-
-            if(!$this->checkValidity($i_input_field, $data)) continue;
+            $data_labels = array();
 
             //check if any inputs are radio/dropdown, if so replace with labels
-            foreach($i_input_field as $label){
-                $check = parseEnum($Proj->metadata[$label]["element_enum"]);
-                    if(!empty($check)){
-                        $numerical_value = (int)$data[$label];
-                        $readable_value = $check[$numerical_value];
-                        $data[$label] = $readable_value;  //set data value
+            foreach($i_input_field as $fieldname){
+                $check = parseEnum($Proj->metadata[$fieldname]["element_enum"]);
+                if(!empty($check)){ //array of all enum options
+                    if($Proj->metadata[$fieldname]["element_type"] == 'checkbox'){ //Checkbox has special alternative
+                        foreach($check as $key => $val){
+                            if(!empty($data[$fieldname."___".$key])){ //if checkbox build each key as val
+                                $data[$fieldname."___".$key] = "0";
+                                $data_labels[$fieldname."___".$key] = $val; //Create field representation
+                            }
+                        }
+                    } else { //if radio button or dropdown select
+                        if(!empty($data[$fieldname])){
+                            $data_labels[$fieldname] =  $check[$data[$fieldname]];
+                            $data[$fieldname] = "";
+                        }
                     }
+                }
+                //input field or note field
+                if(!empty($data[$fieldname])){
+                    $data_labels[$fieldname] = $data[$fieldname];
+                    $data[$fieldname] = "";
+                }
+
             }
+
+            if(!$this->checkValidity($data_labels)) continue;
 
             // There is a new note entry
             $this->emDebug("Updating Note: {$data[$i_input_field]}");
@@ -82,44 +99,38 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule
             // Set date field to current time
             $new_date_format = $this->getNewDateFormat($i_date_field);
             $new_date = empty($new_date_format) ? "" : Date($new_date_format);
-            $new_note = $this->appendNote($data, $i_note_field, $i_input_field, $new_date, USERID, $i_include_delimiter);
+            $new_note = $this->appendNote($data_labels, $data[$i_note_field], $i_input_field, $new_date, USERID, $i_include_delimiter);
 
             //Set new data object to update record
             $data[$i_note_field] = $new_note;
             $data[$i_date_field] = $new_date;
 
-            //Clear fields
-            foreach($i_input_field as $field)
-                $data[$field] = "";
-
             // Save
             $output_json = json_encode(array($data));
             $result      = REDCap::saveData('json', $output_json, 'overwrite');
             if (!empty($result['errors'])) $this->emError("Errors saving result: ", $data_json, $output_json, $result);
+            if (!empty($result['errors'])) REDCap::logEvent("NOTETAKER EM ERROR", "Errors saving result, this is likely because a field-type specified is not supported", "", $data_json, $output_json, $result);
+
         }
 
     }
 
     /** Function that determines if record save is valid. Returns false only when all input fields are empty
-     * @param $input_fields {Array} field names of inputs to pull from
-     * @param $data : data object to check
+     * @param $data_labels {Array} field names & data of getData
      * @return bool
      */
-    public function checkValidity($input_fields, $data)
+    public function checkValidity($data_labels)
     {
-        if(!isset($input_fields) || !isset($data)){
+        if(!isset($data_labels)){
             $this->emError("Error in passing arguments into checkValidity");
             return false;
         }
 
-        foreach($input_fields as $field){
-            if(empty($data[$field]))
-                continue;
-            else //if one field is populated return true
-                return true;
-        }
+        if(empty($data_labels))
+            return false;
+        else
+            return true;
 
-        return false;
     }
 
     /** Returns the new date format as a String based on set validation type specified in designer
@@ -158,29 +169,28 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule
 
     /**
      * Take the current note text and append in the new values
-     * @param string $current_note
-     * @param string $new_note
+     * @param string $data_labels
+     * @param string $existing_note
+     * @param string $i_input_field
      * @param string $date
      * @param string $user
      * @param bool $use_delimiter
-     * @param bool $add_newline
      * @return string
      */
-    private function appendNote($data, $i_note_field, $i_input_field, $date, $user, $use_delimiter)
+    private function appendNote($data_labels, $existing_note, $i_input_field, $date, $user, $use_delimiter)
     {
         $delimiter = $use_delimiter ? self::DELIMITER : "\n\n";
         $entry = "[{$user} @ {$date}]";
 
         if(count($i_input_field) === 1){ //If only one note field, label is not necessary
-            $entry .= "\n" . $data[$i_input_field[0]];
+            $entry .= "\n" . $data_labels[$i_input_field[0]];
         } else { //Else provide label distinction
-            foreach($i_input_field as $field){
-                if(!empty($data[$field]))
-                    $entry .= "\n" ."({$field}) " . $data[$field];
+            foreach($data_labels as $field => $val){
+                    $entry .= "\n" ."({$field}) " . $val;
             }
         }
 
-        $result = empty($data[$i_note_field]) ? $entry : $entry . $delimiter . $data[$i_note_field];
+        $result = empty($existing_note) ? $entry : $entry . $delimiter . $existing_note;
         return $result;
     }
 
