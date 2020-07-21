@@ -149,6 +149,7 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule
         global $Proj;
         $date_format = $Proj->metadata[$i_date_field]['element_validation_type'];
         // $this->emDebug($i_date_field . " is " . $date_format);
+        if (empty($date_format)) REDCap::logEvent("NOTETAKER EM ERROR", "Error saving result, no date format specified on `Date Field last modified` field", "", "", "", "");
 
         $tokenized = explode("_", $date_format);
 

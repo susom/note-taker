@@ -25,7 +25,8 @@ The following instrument fields can be specified:
 
 
 ##Notes:
-When choosing between validation formats for date in the designer, feel free to choose between the following options<br>
+###It is mandatory to choose a validation format when editing the date field of an instrument. <br>
+When choosing between validation formats for date in the designer, feel free to choose between the following options:<br>
 1. Date
 1. Datetime
 1. Datetime w/seconds

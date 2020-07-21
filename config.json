@@ -55,7 +55,7 @@
                 },
                 {
                     "key": "date-field",
-                    "name": "<b>Date Field last modified</b> (must be validated as date or date/time)<br>This field's value will be populated with the current time & date upon record save (useful for report filters)",
+                    "name": "<b>Date Field last modified</b> (must be validated as date or date/time)<br>This field's value will be populated with the current time & date upon record save (useful for report filters) <br> NOTE: Please remember to specify a validation type when customizing this field",
                     "required": true,
                     "type": "field-list"
                 },
