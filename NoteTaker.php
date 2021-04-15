@@ -11,7 +11,8 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule
 
     use emLoggerTrait;
 
-    const DELIMITER = "\n------------------------------------------------------------\n";
+    const LF = "\r\n";
+    const DELIMITER = self::LF . "------------------------------------------------------------" . self::LF;
 
     /** Prepends an entry into notebox specified by user upon record save
      * @param      $project_id
@@ -26,8 +27,9 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule
      */
     public function redcap_save_record($project_id, $record = NULL, $instrument, $event_id, $group_id = NULL, $survey_hash, $response_id, $repeat_instance = 1)
     {
+        $instances = $this->getSubSettings('instance'); // Take the current instrument and get all the fields.  Then check if the 'input field' is present in the instrument fields and is not empty.  If so, then add a log entry...
+
         global $Proj;
-        $instances = $this->getSubSettings('instance'); // Take the current insturment and get all the fields.  Then check if the 'input field' is present in the instrument fields and is not empty.  If so, then add a log entry...
         $RepeatingFormsEvents = $Proj->hasRepeatingFormsEvents();
         $event_name = REDCap::getEventNames(true,true,$event_id);
 
@@ -37,17 +39,18 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule
             $i_event_id          = $instance['event-id'];
             $i_date_field        = $instance['date-field'];
             $i_note_field        = $instance['note-field'];
-            $i_input_field       = $instance['input-field'];
+            $i_input_fields      = $instance['input-field'];
             $i_include_delimiter = $instance['include-delimiter'];
-            $instrument_fields = REDCap::getFieldNames($instrument); // Load the fields on the instrument just saved
 
             // Only process this config if the event just saved matches the instance event id
             if ($i_event_id !== $event_id) continue;
 
             // If the input_fields aren't all on the form, then continue
-            foreach($i_input_field as $field)
-                if(!in_array($field, $instrument_fields)) continue;
+            $instrument_fields = REDCap::getFieldNames($instrument); // Load the fields on the instrument just saved
+            $overlap = array_intersect($i_input_fields, $instrument_fields);
+            if (empty($overlap)) continue;
 
+            // Do not permit repeating forms
             if($RepeatingFormsEvents) {
                 if (!empty($Proj->RepeatingFormsEvents[$event_id][$instrument])) {
                     REDCap::logEvent("NOTETAKER EM ERROR", "$instrument in $event_name cannot be used with Notetaker because it is repeating", "", $record, $event_id, $project_id);
@@ -60,13 +63,13 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule
             }
 
             // Pull data to check if the input-field had an entry
-            $fields = array_merge($i_input_field, array($i_date_field, $i_note_field, REDCap::getRecordIdField()));
+            $fields = array_merge($i_input_fields, array($i_date_field, $i_note_field, REDCap::getRecordIdField()));
             $data_json = REDCap::getData('json', $record, $fields, $event_id);
             $data = json_decode($data_json, true)[0];
             $data_labels = array();
 
             //check if any inputs are radio/dropdown, if so replace with labels
-            foreach($i_input_field as $fieldname){
+            foreach($i_input_fields as $fieldname){
                 $check = parseEnum($Proj->metadata[$fieldname]["element_enum"]);
                 if(!empty($check)){ //array of all enum options
                     if($Proj->metadata[$fieldname]["element_type"] == 'checkbox'){ //Checkbox has special alternative
@@ -94,12 +97,12 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule
             if(!$this->checkValidity($data_labels)) continue;
 
             // There is a new note entry
-            $this->emDebug("Updating Note: {$data[$i_input_field]}");
+            $this->emDebug("Updating Note: {$data[$i_note_field]}");
 
             // Set date field to current time
             $new_date_format = $this->getNewDateFormat($i_date_field);
             $new_date = empty($new_date_format) ? "" : Date($new_date_format);
-            $new_note = $this->appendNote($data_labels, $data[$i_note_field], $i_input_field, $new_date, USERID, $i_include_delimiter);
+            $new_note = $this->appendNote($data_labels, $data[$i_note_field], $i_input_fields, $new_date, USERID, $i_include_delimiter);
 
             //Set new data object to update record
             $data[$i_note_field] = $new_note;
@@ -107,6 +110,7 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule
 
             // Save
             $output_json = json_encode(array($data));
+            $this->emDebug($data, $output_json);
             $result      = REDCap::saveData('json', $output_json, 'overwrite');
             if (!empty($result['errors'])) $this->emError("Errors saving result: ", $data_json, $output_json, $result);
             if (!empty($result['errors'])) REDCap::logEvent("NOTETAKER EM ERROR", "Errors saving result, this is likely because a field-type specified is not supported", "", $data_json, $output_json, $result);
@@ -180,14 +184,14 @@ class NoteTaker extends \ExternalModules\AbstractExternalModule
      */
     private function appendNote($data_labels, $existing_note, $i_input_field, $date, $user, $use_delimiter)
     {
-        $delimiter = $use_delimiter ? self::DELIMITER : "\n\n";
+        $delimiter = $use_delimiter ? self::DELIMITER : self::LF . self::LF;
         $entry = "[{$user} @ {$date}]";
 
         if(count($i_input_field) === 1){ //If only one note field, label is not necessary
-            $entry .= "\n" . $data_labels[$i_input_field[0]];
+            $entry .= " " . $data_labels[$i_input_field[0]];
         } else { //Else provide label distinction
             foreach($data_labels as $field => $val){
-                    $entry .= "\n" ."({$field}) " . $val;
+                    $entry .= self::LF ." ({$field}) " . $val;
             }
         }
 
