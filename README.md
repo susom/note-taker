@@ -13,13 +13,13 @@ Notes are arranged newest to oldest and prepended with a header with the followi
 
 ## Project Setup
 To add Note Taker to a form, you need to create a minimum of three fields in a single event to track the note:
-1. A Note Storage Field (text area or input).  This field will keep the growing note log.
+1. A Note Storage Field (notes/text area).  This field will keep the growing note log.
    * This field is typically marked `@HIDDEN` and its value is displayed via piping.  An example of how one could
    pipe the value elsewhere on the form is:
    ```
    <div class="notesbox" style="border: 1px solid #ccc; overflow: auto; resize: auto; font-weight: normal;">[note_storage_field]</div>
    ```
-   * Often we pipe the value of this field in the LABEL of the input field
+   * Often we pipe the value of this field in the LABEL of the Note Entry/Input field below
 2. An Note Entry/Input Field(s) (text area, input, dropdown, radio, or checkbox).  These fields will be added to the note.
    * This is the form where a user adds a value and then presses 'save' or 'save and stay' for the note to be applied.
    * In the most basic form, you have a single text area field for a comment.  In a more complex example around phone logging, you could
@@ -37,7 +37,7 @@ After the fields are present, goto the External Module configuration page:
 ## Configuration options
 The following instrument fields can be specified for each note taker block.  Multiple blocks can be added to a single project:
 1. *[Arm & Event ID]* : The event where the fields above are configured
-1. *[Note Storage Field]* : The field that contains all note contents (Supported Formats: text and notes)
+1. *[Note Storage Field]* : The field that contains all note contents (Supported Formats: notes)
 1. *[Input Fields]* : One or more input fields which will be placed into the Storage field on each save.  (Supported Formats: Text/Notes/Radio/Dropdown/Checkbox)
 1. *[Date Field]* : The date field that will be populated anytime a user edits the input field. Formats include date, datetime and datetime_seconds
 1. *[Include a delimiter]* : If checked, will separate each valid record update with a string "------------------------------------------------------------"

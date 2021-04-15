@@ -48,13 +48,13 @@
                 },
                 {
                     "key": "note-field",
-                    "name": "<b>Note Log Storage Field</b> (either <i>'text'</i> or <i>'textarea'</i> field)<br>This field will contain the assembled log of all notes.  It is typically @HIDDEN and its value is piped into another field for display (such as the input field below).",
+                    "name": "<b>Note Log Storage Field</b> (<i>'notes/textarea'</i> field)<br>This field will contain the assembled log of all notes.  It is typically @HIDDEN and its value is piped into another field for display (such as the new entry input field below).",
                     "required": true,
                     "type": "field-list"
                 },
                 {
                     "key": "input-field",
-                    "name": "<b>Input Field(s)</b>(either <i>'text'</i> or <i>'dropdown'</i> or <i>'radio'</i> or <i>'select many'</i>)<br>This field's value will be added to the note log field above on record save.  You can have multiple fields if you like.  The value of all fields will be cleared on each save.",
+                    "name": "<b>New Entry Input Field(s)</b>(either <i>'text'</i> or <i>'dropdown'</i> or <i>'radio'</i> or <i>'select many'</i>)<br>This field's value will be added to the note log field above on record save.  You can have multiple fields if you like.  The value of all fields will be cleared on each save.",
                     "required": true,
                     "type": "field-list",
                     "repeatable": true
