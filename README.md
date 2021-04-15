@@ -34,7 +34,7 @@ To add Note Taker to a form, you need to create a minimum of three fields in a s
 
 After the fields are present, goto the External Module configuration page:
 
-##Configuration options
+## Configuration options
 The following instrument fields can be specified:
 1. *[Arm & Event ID]* : The event where the fields above are configured
 1. *[Note Storage Field]* : The field that contains all note contents (Supported Formats: text and notes)
@@ -43,14 +43,12 @@ The following instrument fields can be specified:
 1. *[Include a delimiter]* : If checked, will separate each valid record update with a string "------------------------------------------------------------"
 
 
-##Notes:
+## Notes:
 
-###It is mandatory to choose a validation format when editing the date field of an instrument.
-When choosing between validation formats for date in the designer, feel free to choose between the following options:
-1. Date
-1. Datetime
-1. Datetime w/seconds
-
-Note however that the header will be formatted in (Y-M-D) regardless of your choice. The only difference being the specificity rather than the order.
-If specifying an altering order, the data will save in (Y-M-D) format, and you might receive an alert message upon record save.
+* It is mandatory to choose a validation format when editing the date field of an instrument.  The following are valid options:
+  1. Date
+  1. Datetime
+  1. Datetime w/seconds
+  Note however that the header will be formatted in (Y-M-D) regardless of your choice. The only difference being the specificity rather than the order.
+  If specifying an altering order, the data will save in (Y-M-D) format, and you might receive an alert message upon record save.
 

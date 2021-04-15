@@ -30,7 +30,7 @@
     "project-settings": [
         {
             "key": "description",
-            "name": "<h6 class='text-center text-primary primary-success'><b>Note Taker Instructions</b></h6><p>Each block for notes requires three fields be configured</p>",
+            "name": "<h6 class='text-center text-primary primary-success'><b>Note Taker Instructions</b></h6><p>Each block for notes requires a minimum of three fields be configured</p><a href='https://github.com/susom/note-taker/blob/master/NoteTakerExampleForm.zip' target='_BLANK'>Click here for a an example input form</a>",
             "type": "descriptive"
         },
         {
