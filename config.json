@@ -47,21 +47,21 @@
                     "type": "event-list"
                 },
                 {
+                    "key": "note-field",
+                    "name": "<b>Note Log Storage Field</b> (either <i>'text'</i> or <i>'textarea'</i> field)<br>This field will contain the assembled log of all notes.  It is typically @HIDDEN and its value is piped into another field for display (such as the input field below).",
+                    "required": true,
+                    "type": "field-list"
+                },
+                {
                     "key": "input-field",
-                    "name": "<b>Input Field</b>(either <i>'text'</i> or <i>'dropdown'</i> or <i>'radio'</i> or <i>'select many'</i>)<br>This field's value will be added to the designated note field upon record save.",
+                    "name": "<b>Input Field(s)</b>(either <i>'text'</i> or <i>'dropdown'</i> or <i>'radio'</i> or <i>'select many'</i>)<br>This field's value will be added to the note log field above on record save.  You can have multiple fields if you like.  The value of all fields will be cleared on each save.",
                     "required": true,
                     "type": "field-list",
                     "repeatable": true
                 },
                 {
                     "key": "date-field",
-                    "name": "<b>Date Field last modified</b> (must be validated as date or date/time)<br>This field's value will be populated with the current time & date upon record save (useful for report filters) <br> NOTE: Please remember to specify a validation type when customizing this field",
-                    "required": true,
-                    "type": "field-list"
-                },
-                {
-                    "key": "note-field",
-                    "name": "<b>Note Field</b> (either <i>'text'</i> or <i>'textarea'</i> field)<br>This field's value will be all previous notes prepended with the input field's value upon record save. <br> NOTE: You will also need a field to display the piped results.",
+                    "name": "<b>Date Field last modified</b>(<i>text</i> validated as date or date/time)<br>This field is typically @HIDDEN.  Its value will be populated with the time of the last note entry and is useful for report filters<br> NOTE: Please remember to specify a validation type when customizing this field",
                     "required": true,
                     "type": "field-list"
                 },
