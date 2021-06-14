@@ -6,6 +6,7 @@ Notes will be arranged newest to oldest and prepended with a header with the fol
 [username @ date] Note...
 ```
 
+
 ## Project Setup
 To add a log to a form, you need three fields:
 1. An input field (or text area) where you will write your log entries
